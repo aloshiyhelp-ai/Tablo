@@ -1,13 +1,14 @@
+import os
 import logging
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
 print("=" * 50)
-print("🤖 BALL BOT v1.0 ISHGA TUSHMOQDA...")
+print("🤖 BALL BOT v2.0 ISHGA TUSHMOQDA...")
 print("=" * 50)
 
-# 🔑 TOKENNI BU YERGA QO'YING!
-TOKEN = "8568086831:AAF5idiBW0T0V6EuQXZk_XFMwlO64fpULrg"  # ❗ TOKEN YOZING
+# Token - BU YERGA O'Z TOKENINGIZNI YOZING
+TOKEN = "8568086831:AAF5idiBW0T0V6EuQXZk_XFMwlO64fpULrg"
 
 # Logging
 logging.basicConfig(
@@ -19,9 +20,9 @@ logger = logging.getLogger(__name__)
 # Saqlash
 points_db = {}
 
-def start(update: Update, context: CallbackContext):
+async def start(update: Update, context: CallbackContext):
     user = update.effective_user
-    update.message.reply_text(
+    await update.message.reply_text(
         f"👋 Salom {user.first_name}!\n"
         f"🎯 *Ball Bot ishga tushdi!*\n\n"
         f"✅ *Ball berish:*\n"
@@ -33,7 +34,7 @@ def start(update: Update, context: CallbackContext):
     )
     logger.info(f"Start command from {user.first_name}")
 
-def give_points(update: Update, context: CallbackContext):
+async def give_points(update: Update, context: CallbackContext):
     try:
         if update.message.reply_to_message:
             chat_id = str(update.message.chat.id)
@@ -52,7 +53,7 @@ def give_points(update: Update, context: CallbackContext):
             
             points_db[chat_id][user_id]['points'] += 5
             
-            update.message.reply_text(
+            await update.message.reply_text(
                 f"✅ *{user.full_name}* ga +5 ball!\n"
                 f"📊 Jami: {points_db[chat_id][user_id]['points']} ball",
                 parse_mode='Markdown'
@@ -61,7 +62,7 @@ def give_points(update: Update, context: CallbackContext):
     except Exception as e:
         logger.error(f"Error in give_points: {e}")
 
-def show_ball(update: Update, context: CallbackContext):
+async def show_ball(update: Update, context: CallbackContext):
     chat_id = str(update.message.chat.id)
     
     if chat_id in points_db and points_db[chat_id]:
@@ -77,52 +78,51 @@ def show_ball(update: Update, context: CallbackContext):
             
             text += f"{medal}*{data['name']}* - {data['points']} ball\n"
         
-        update.message.reply_text(text, parse_mode='Markdown')
+        await update.message.reply_text(text, parse_mode='Markdown')
     else:
-        update.message.reply_text("Hali hech kim ball to'plamagan!")
+        await update.message.reply_text("Hali hech kim ball to'plamagan!")
 
-def my_ball(update: Update, context: CallbackContext):
+async def my_ball(update: Update, context: CallbackContext):
     chat_id = str(update.message.chat.id)
     user_id = str(update.message.from_user.id)
     
     if chat_id in points_db and user_id in points_db[chat_id]:
         points = points_db[chat_id][user_id]['points']
-        update.message.reply_text(f"📊 Sizda *{points} ball* bor!", parse_mode='Markdown')
+        await update.message.reply_text(f"📊 Sizda *{points} ball* bor!", parse_mode='Markdown')
     else:
-        update.message.reply_text("Sizda hali ball yo'q!")
+        await update.message.reply_text("Sizda hali ball yo'q!")
 
-def error(update: Update, context: CallbackContext):
-    logger.warning(f'Update {update} caused error {context.error}')
+async def error_handler(update: Update, context: CallbackContext):
+    logger.error(f"Update {update} caused error {context.error}")
 
 def main():
     # Token tekshirish
-    if not TOKEN or TOKEN == "8568086831:AAG-LHgqwAMyk02_1fcPa378Uf319XZYYdE":
+    if not TOKEN:
         logger.error("❌ Token kiritilmagan!")
         print("❌ ERROR: Token kiritilmagan!")
-        print("❗ Token qo'yish: TOKEN = 'bot_father_token' qatorida")
         return
     
     print(f"🔑 Token uzunligi: {len(TOKEN)}")
     print(f"🔑 Token: {TOKEN[:15]}...")
     
     try:
-        # Bot yaratish (ESKI VERSIYA USULI)
-        updater = Updater(TOKEN, use_context=True)
-        dp = updater.dispatcher
+        # Bot yaratish (YANGI VERSIYA)
+        app = Application.builder().token(TOKEN).build()
         
         # Handlerlar
-        dp.add_handler(CommandHandler("start", start))
-        dp.add_handler(CommandHandler("ball", show_ball))
-        dp.add_handler(CommandHandler("myball", my_ball))
-        dp.add_handler(MessageHandler(Filters.reply & Filters.text, give_points))
-        dp.add_error_handler(error)
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("ball", show_ball))
+        app.add_handler(CommandHandler("myball", my_ball))
+        app.add_handler(MessageHandler(filters.REPLY & filters.TEXT, give_points))
         
-        # Ishga tushirish
+        # Error handler
+        app.add_error_handler(error_handler)
+        
         print("✅ Bot yaratildi!")
         print("🔄 Polling boshlanmoqda...")
         
-        updater.start_polling()
-        updater.idle()
+        # Ishga tushirish
+        app.run_polling()
         
     except Exception as e:
         print(f"❌ CRITICAL ERROR: {type(e).__name__}")
