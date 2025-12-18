@@ -1,3 +1,4 @@
+import os
 import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
@@ -6,7 +7,7 @@ print("=" * 50)
 print("🤖 BALL BOT v2.0 ISHGA TUSHMOQDA...")
 print("=" * 50)
 
-# TOKEN - O'Z TOKENINGIZNI QO'YING!
+# TOKEN - BU YERDA TOKEN BERILGAN
 TOKEN = "8568086831:AAF5idiBW0T0V6EuQXZk_XFMwlO64fpULrg"
 
 # Logging
@@ -106,10 +107,6 @@ def main():
     """Asosiy funksiya"""
     print(f"🔑 Token uzunligi: {len(TOKEN)}")
     print(f"🔑 Token boshi: {TOKEN[:20]}...")
-    
-    if not TOKEN or TOKEN == "8568086831:AAF5idiBW0T0V6EuQXZk_XFMwlO64fpULrg":
-        print("❌ Iltimos, TOKEN ni o'zgartiring! Bot Father bergan tokeningizni qo'ying.")
-        return
     
     try:
         # Bot yaratish (YANGI VERSIYA)
