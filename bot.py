@@ -72,10 +72,14 @@ def show_ball(update, context):
         
         text = "🏆 *GURUH REYTINGI* 🏆\n\n"
         for i, (uid, data) in enumerate(sorted_users[:10], 1):
-            if i == 1: medal = "🥇 "
-            elif i == 2: medal = "🥈 "
-            elif i == 3: medal = "🥉 "
-            else: medal = f"{i}. "
+            if i == 1:
+                medal = "🥇 "
+            elif i == 2:
+                medal = "🥈 "
+            elif i == 3:
+                medal = "🥉 "
+            else:
+                medal = f"{i}. "
             
             text += f"{medal}*{data['name']}* - {data['points']} ball\n"
         
@@ -100,4 +104,38 @@ def error(update, context):
 
 # Asosiy funksiya
 def main():
-    print(f"
+    print(f"🔑 Token uzunligi: {len(TOKEN)}")
+    print(f"🔑 Token boshi: {TOKEN[:20]}...")
+    
+    try:
+        # Bot yaratish (ESKI VERSIYA - ishonchli)
+        updater = Updater(TOKEN, use_context=True)
+        
+        # Dispatcher
+        dp = updater.dispatcher
+        
+        # Handlerlar qo'shish
+        dp.add_handler(CommandHandler("start", start))
+        dp.add_handler(CommandHandler("ball", show_ball))
+        dp.add_handler(CommandHandler("myball", my_ball))
+        dp.add_handler(MessageHandler(Filters.reply & Filters.text, give_points))
+        dp.add_error_handler(error)
+        
+        print("✅ Bot yaratildi!")
+        print("🔄 Polling boshlanmoqda...")
+        
+        # Botni ishga tushirish
+        updater.start_polling()
+        updater.idle()
+        
+    except Exception as e:
+        print(f"❌ XATO: {type(e).__name__}")
+        print(f"❌ Xato tafsiloti: {str(e)[:100]}")
+        
+        if "invalid" in str(e).lower() or "unauthorized" in str(e):
+            print("❗ TOKEN NOTO'G'RI! Yangi bot yarating @BotFather")
+        else:
+            print("❗ Boshqa xato. Logs'ni tekshiring.")
+
+if __name__ == '__main__':
+    main()
